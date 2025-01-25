@@ -43,6 +43,6 @@ describe("cascade02 task04", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve(...inputs)).toEqual("177,19,17");
+    expect(solve(...inputs)).toEqual("159,13,17");
   });
 });

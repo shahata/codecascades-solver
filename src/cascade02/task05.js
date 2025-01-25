@@ -30,7 +30,7 @@ function inSight(guard, acc, walls) {
   return guard.dir;
 }
 
-export function solve(input, walls, treasures, guards) {
+export function play(input, walls, treasures, guards) {
   guards = guards.split(" ").map(g => {
     let [x, y] = g.split(",").map(x => Number(x));
     return { x, y, dir: "S", wait: false };
@@ -47,11 +47,11 @@ export function solve(input, walls, treasures, guards) {
   );
   let start = { x: 1, y: 1 };
   // let bumps = 0;
-  // let points = 0;
-  // let lastPoint = 0;
+  let points = 0;
+  let lastPoint = 0;
   let currTime = 0;
   let endGame;
-  input
+  let end = input
     .split(" ")
     .map(x => [x[0], parseInt(x.slice(1))])
     .reduce((acc, [dir, steps]) => {
@@ -70,8 +70,8 @@ export function solve(input, walls, treasures, guards) {
         let treasure = treasures.find(t => t.x === acc.x && t.y === acc.y);
         if (treasure) {
           treasures.splice(treasures.indexOf(treasure), 1);
-          // points += treasure.points;
-          // lastPoint = currTime;
+          points += treasure.points;
+          lastPoint = currTime;
         }
         guards.forEach(guard => {
           // let prev = { ...guard };
@@ -79,7 +79,7 @@ export function solve(input, walls, treasures, guards) {
             (guard.x - prev.x) * (guard.x - acc.x) <= 0 &&
             (guard.y - prev.y) * (guard.y - acc.y) <= 0
           ) {
-            endGame = endGame || `${currTime},${acc.x},${acc.y}`;
+            endGame = endGame || `${acc.x},${acc.y}`;
             return;
           }
           if (guard.dir === "S") {
@@ -106,7 +106,7 @@ export function solve(input, walls, treasures, guards) {
           guard.dir = inSight(guard, acc, walls);
 
           if (guard.x === acc.x && guard.y === acc.y) {
-            endGame = endGame || `${currTime},${acc.x},${acc.y}`;
+            endGame = endGame || `${acc.x},${acc.y}`;
             return;
           }
         });
@@ -114,5 +114,21 @@ export function solve(input, walls, treasures, guards) {
       return acc;
     }, start);
 
-  return endGame;
+  return (
+    !endGame && {
+      location: `${end.x},${end.y}`,
+      score: points,
+      time: lastPoint,
+    }
+  );
+}
+
+export function solve(input, walls, treasures, guards, games) {
+  games = games.split("\n");
+  let results = games
+    .map((game, i) => ({ i: i + 1, ...play(game, walls, treasures, guards) }))
+    .filter(x => x.score)
+    .sort((a, b) => b.score - a.score || a.time - b.time);
+  let { i, location, score, time } = results[0];
+  return [i, location, score, time].join(",");
 }
