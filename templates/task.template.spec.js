@@ -1,7 +1,7 @@
 import { solve } from "./{{taskName}}.js";
-import readInput from "../utils/read-input.js";
+import readInputs from "../utils/read-inputs.js";
 
-let inputs = readInput(import.meta.url);
+let inputs = readInputs(import.meta.url);
 
 describe("{{cascadeName}} {{taskName}}", () => {
   test("it should work for examples", () => {
