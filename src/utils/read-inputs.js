@@ -13,7 +13,7 @@ function getAllInputs(dir) {
     .map(file => readFileSync(file).toString().trimEnd());
 }
 
-export default function readInput(fileUrl) {
+export default function readInputs(fileUrl) {
   let filename = fileURLToPath(fileUrl);
   let dirName = filename.slice(0, filename.lastIndexOf("/"));
   return getAllInputs(dirName);
