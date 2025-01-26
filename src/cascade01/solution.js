@@ -34,7 +34,7 @@ export function solve3(input, energy = 1024) {
     let add = [];
     for (let root of roots) {
       let next = root.digits.slice(i * 5, (i + 1) * 5).join("");
-      next = parseInt(next, 16).toString(2);
+      next = parseInt(next, 16).toString(2).padStart(20, "0");
       // let distance = parseInt(next.slice(0, 7), 2);
       let drop = Math.min(root.energy, 5 + parseInt(next.slice(7, 10), 2));
       // let direction = parseInt(next.slice(10), 2);
