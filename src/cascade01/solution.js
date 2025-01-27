@@ -32,7 +32,6 @@ let angles = [
 let sin = x => Math.sin(x * (Math.PI / 180));
 let cos = x => Math.cos(x * (Math.PI / 180));
 function growRoot(input, energy = 1024) {
-  input = input.split("");
   let roots = [0, 1, 2, 3, 4]
     .map(i => ({
       digits: input.slice(i * 200, (i + 1) * 200),
@@ -49,7 +48,7 @@ function growRoot(input, energy = 1024) {
     let add = [];
     for (let root of roots) {
       if (root.energy === 0 || i * 5 > root.digits.length) continue;
-      let next = root.digits.slice(i * 5, (i + 1) * 5).join("");
+      let next = root.digits.slice(i * 5, (i + 1) * 5);
       next = parseInt(next, 16).toString(2).padStart(20, "0");
       let distance = 100 + parseInt(next.slice(0, 7), 2);
       let drop = Math.min(root.energy, 5 + parseInt(next.slice(7, 10), 2));
@@ -91,4 +90,39 @@ export function solve4(input, energy) {
   if (input.length === 32) input = solve2(input).slice(0, 1000);
   else input = input.padStart(800 + input.length, "X");
   return growRoot(input, energy).pot;
+}
+
+export function solve5(input) {
+  let limits = [
+    [5, 6],
+    [4, 7],
+    [3, 8],
+    [2, 9],
+    [2, 9],
+    [2, 9],
+    [2, 9],
+    [2, 9],
+  ];
+  if (input.length === 32)
+    input = solve2(input, 1, 1000000).slice(1000000, 2000000);
+  else limits = limits.slice(0, 2);
+  let level = 0;
+  let current = 1;
+  let levels = new Array(9).fill(0);
+  levels[0] = 1;
+  for (let i = 0; level < limits.length; i++) {
+    current++;
+    let next = parseInt(input[i], 16);
+    next = parseInt(next.toString(2).padStart(4, "0").slice(-3), 2) + 2;
+    next = Math.min(Math.max(next, limits[level][0]), limits[level][1]);
+    levels[level + 1] += next;
+    if (current > levels[level]) {
+      current = 1;
+      level++;
+    }
+  }
+  levels = levels.filter(x => x > 0);
+  let forks = levels.slice(0, -1).reduce((a, b) => a + b);
+  let leaves = levels.at(-1);
+  return `${forks},${leaves}`;
 }

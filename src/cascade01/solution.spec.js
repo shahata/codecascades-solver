@@ -1,4 +1,4 @@
-import { solve1, solve2, solve3, solve4 } from "./solution.js";
+import { solve1, solve2, solve3, solve4, solve5 } from "./solution.js";
 import readInputs from "../utils/read-inputs.js";
 
 let inputs = readInputs(import.meta.url);
@@ -52,5 +52,15 @@ describe("cascade01 task04", () => {
 
   test("it should work for input", () => {
     expect(solve4(...inputs)).toEqual("3201,3126,2911");
+  });
+});
+
+describe("cascade01 task05", () => {
+  test("it should work for examples", () => {
+    expect(solve5("a5fb04")).toEqual("6,29");
+  });
+
+  test("it should work for input", () => {
+    expect(solve5(...inputs)).toEqual("162385,730417");
   });
 });
