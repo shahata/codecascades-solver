@@ -7,11 +7,17 @@ import readInputs from "./read-inputs.js";
 import { createSolver } from "./renderer.js";
 
 let duration;
-async function timerify(fn) {
+async function timerify(n, fn) {
   let start = performance.now();
   let result = await fn();
   let end = performance.now();
   duration = `(${Math.round(end - start)}ms)`;
+  if (result.next) {
+    let iter = result;
+    while (!result.done) result = await timerify(n++, () => iter.next());
+  } else {
+    console.log(`Part ${n}:`, `${result.value || result}`, duration);
+  }
   return result;
 }
 
@@ -28,8 +34,7 @@ function solverFunction(cascade) {
       console.log(`Solution for ${moduleName}!!!`);
       console.log("----------------------------");
       for (let i = 0; i < inputs.length; i++) {
-        let result = timerify(() => module.solve(...inputs.slice(0, i + 1)));
-        console.log(`Part${i + 1}: ${await result}`, duration);
+        await timerify(i + 1, () => module.solve(...inputs.slice(0, i + 1)));
       }
       console.log("");
     };

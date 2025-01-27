@@ -19,7 +19,7 @@ function calcImage(seed, times = 1000) {
   };
 }
 
-export function solve2(input, slice = 0, times = 1000) {
+export function solve2(input, slice = -4, times = 1000) {
   let parts = [
     [parseInt(input.slice(0, 5), 16)],
     [parseInt(input.slice(5, 10), 16)],
@@ -88,12 +88,12 @@ function growRoot(input, energy = 1024) {
 }
 
 export function solve3(input, energy) {
-  if (input.length === 32) input = solve2(input).slice(0, 1000);
+  if (input.length === 32) input = solve2(input, 0).slice(0, 1000);
   return growRoot(input, energy).drops;
 }
 
 export function solve4(input, energy) {
-  if (input.length === 32) input = solve2(input).slice(0, 1000);
+  if (input.length === 32) input = solve2(input, 0).slice(0, 1000);
   else input = input.padStart(800 + input.length, "X");
   return growRoot(input, energy).pot;
 }
@@ -137,4 +137,56 @@ export function solve5(input) {
   }
   let forks = levels.slice(0, -1).reduce((a, b) => a + b);
   return `${forks},${levels.at(-1)}`;
+}
+
+export function solve6(input, image) {
+  let leaves = [];
+  let seed = parseInt(input.slice(10, 15), 16);
+  let leafDigits = image ? 4 : 999;
+  let growTime = image ? 4 : 1000;
+  let energyIncrement = image ? 250 : 1000;
+  let count = +solve5(input).split(",").at(-1);
+  if (!image) ({ image, seed } = calcImage(seed, count + leafDigits + 2));
+  energyIncrement -= parseInt(image.slice(0, 2), 16);
+  for (let i = 0; i < count; i++) {
+    let required = image.slice(2 + i, 2 + i + leafDigits);
+    required = required.split("").map(x => parseInt(x, 16));
+    required = required.reduce((a, b) => a + b);
+    let producing = parseInt(image[2 + i + leafDigits], 16) + 1;
+    leaves.push({ required, producing, growing: -1 });
+  }
+  leaves = leaves.sort(
+    (a, b) => a.required - b.required || b.producing - a.producing,
+  );
+  let time = 0;
+  let energy = 0;
+  let increments = {};
+  while (leaves.length > 0) {
+    let next = leaves.shift();
+    while (next.required > energy) {
+      time++;
+      energy += energyIncrement;
+      if (increments[time]) {
+        energyIncrement += increments[time];
+        delete increments[time];
+      }
+    }
+    energy -= next.required;
+    increments[time + growTime] = increments[time + growTime] || 0;
+    increments[time + growTime] += next.producing;
+  }
+  Object.keys(increments).forEach(key => {
+    energyIncrement += increments[key];
+    time = Math.max(time, +key);
+  });
+  return `${time},${energyIncrement}`;
+}
+
+export function* solve(input) {
+  yield solve1(input);
+  yield solve2(input);
+  yield solve3(input);
+  yield solve4(input);
+  yield solve5(input);
+  return solve6(input);
 }
