@@ -158,26 +158,24 @@ export function solve6(input, image) {
   leaves = leaves.sort(
     (a, b) => a.required - b.required || b.producing - a.producing,
   );
+  let inc = [];
   let time = 0;
   let energy = 0;
-  let increments = {};
   while (leaves.length > 0) {
     let next = leaves.shift();
     while (next.required > energy) {
-      time++;
-      energy += energyIncrement;
-      if (increments[time]) {
-        energyIncrement += increments[time];
-        delete increments[time];
-      }
+      let x = Math.ceil((next.required - energy) / energyIncrement);
+      let min = Math.min(x, inc[0] ? inc[0].time - time : Infinity);
+      time += min;
+      energy += energyIncrement * min;
+      while (inc[0]?.time === time) energyIncrement += inc.shift().num;
     }
     energy -= next.required;
-    increments[time + growTime] = increments[time + growTime] || 0;
-    increments[time + growTime] += next.producing;
+    inc.push({ time: time + growTime, num: next.producing });
   }
-  Object.keys(increments).forEach(key => {
-    energyIncrement += increments[key];
-    time = Math.max(time, +key);
+  inc.forEach(x => {
+    energyIncrement += x.num;
+    time = x.time;
   });
   return `${time},${energyIncrement}`;
 }
