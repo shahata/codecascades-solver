@@ -47,7 +47,7 @@ describe("cascade01 task03", () => {
 
 describe("cascade01 task04", () => {
   test("it should work for examples", () => {
-    expect(solve4("abcde9876543210")).toEqual("172,111,1486");
+    expect(solve4("abcde9876543210", 30)).toEqual("172,111,1486");
   });
 
   test("it should work for input", () => {
