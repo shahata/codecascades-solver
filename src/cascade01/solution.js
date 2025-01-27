@@ -7,19 +7,25 @@ export function solve1(input) {
   return result;
 }
 
-export function solve2(input, slice = 1, times = 1000) {
+function calcImage(seed, times = 1000) {
+  let sequence = [seed];
+  for (let i = 0; i < times; i++) {
+    sequence.push((sequence.at(-1) * 421 + 37) % 3872873);
+  }
+  sequence = sequence.slice(1);
+  return {
+    seed: sequence.at(-1),
+    image: sequence.map(x => (x % 16).toString(16)).join(""),
+  };
+}
+
+export function solve2(input, slice = 0, times = 1000) {
   let parts = [
     [parseInt(input.slice(0, 5), 16)],
     [parseInt(input.slice(5, 10), 16)],
     [parseInt(input.slice(10, 15), 16)],
   ];
-  for (let i = 0; i < times; i++) {
-    parts.forEach(part => part.push((part.at(-1) * 421 + 37) % 3872873));
-  }
-  return parts
-    .flatMap(part => part.slice(slice))
-    .map(x => (x % 16).toString(16))
-    .join("");
+  return parts.map(seed => calcImage(seed, times).image.slice(slice)).join("");
 }
 
 let angles = [
@@ -103,26 +109,32 @@ export function solve5(input) {
     [2, 9],
     [2, 9],
   ];
-  if (input.length === 32)
-    input = solve2(input, 1, 1000000).slice(1000000, 2000000);
-  else limits = limits.slice(0, 2);
+  let seed;
+  let image = "";
+  if (input.length === 32) seed = parseInt(input.slice(5, 10), 16);
+  else {
+    image = input;
+    limits = limits.slice(0, 2);
+  }
   let level = 0;
-  let current = 1;
-  let levels = new Array(9).fill(0);
+  let current = 0;
+  let levels = new Array(limits.length + 1).fill(0);
   levels[0] = 1;
   for (let i = 0; level < limits.length; i++) {
-    current++;
-    let next = parseInt(input[i], 16);
+    if (image.length === i) {
+      ({ image, seed } = calcImage(seed));
+      i = 0;
+    }
+    let next = parseInt(image[i], 16);
     next = parseInt(next.toString(2).padStart(4, "0").slice(-3), 2) + 2;
     next = Math.min(Math.max(next, limits[level][0]), limits[level][1]);
     levels[level + 1] += next;
-    if (current > levels[level]) {
-      current = 1;
+    current++;
+    if (current === levels[level]) {
+      current = 0;
       level++;
     }
   }
-  levels = levels.filter(x => x > 0);
   let forks = levels.slice(0, -1).reduce((a, b) => a + b);
-  let leaves = levels.at(-1);
-  return `${forks},${leaves}`;
+  return `${forks},${levels.at(-1)}`;
 }
