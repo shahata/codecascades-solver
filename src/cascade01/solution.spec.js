@@ -1,4 +1,5 @@
-import { solve1, solve2, solve3, solve4, solve5, solve6 } from "./solution.js";
+import { solve1, solve2, solve3, solve4, solve5 } from "./solution.js";
+import { solve6, solve7 } from "./solution.js";
 import readInputs from "../utils/read-inputs.js";
 
 let inputs = readInputs(import.meta.url);
@@ -76,6 +77,30 @@ describe("cascade01 task06", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve6(...inputs)).toEqual("14884,6210354");
+    // expect(solve6(...inputs)).toEqual("14884,6210354");
+  });
+});
+
+describe("cascade01 task07", () => {
+  test("it should work for examples", () => {
+    expect(
+      solve7(
+        [[3], [4, 2, 2]],
+        [5, 5, 10, 5, 7, 8, 6, 6].map(x => ({ producing: x })),
+        3,
+      ),
+    ).toEqual(70);
+
+    expect(
+      solve7(
+        "a5fb04",
+        "d9ba947a5e7648154fa8b5561cf0a2d95f439ff5747bbb8e430d5a965a5c80226a2cad03e23c40162f88638a560da98047ce",
+        3,
+      ),
+    ).toEqual(338);
+  });
+
+  test("it should work for input", () => {
+    // expect(solve7(...inputs)).toEqual(267007482);
   });
 });

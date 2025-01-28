@@ -98,7 +98,7 @@ export function solve4(input, energy) {
   return growRoot(input, energy).pot;
 }
 
-export function solve5(input) {
+function buildTree(input) {
   let limits = [
     [5, 6],
     [4, 7],
@@ -118,8 +118,9 @@ export function solve5(input) {
   }
   let level = 0;
   let current = 0;
-  let levels = new Array(limits.length + 1).fill(0);
-  levels[0] = 1;
+  let counts = new Array(limits.length + 1).fill(0);
+  let levels = new Array(limits.length).fill().map(() => []);
+  counts[0] = 1;
   for (let i = 0; level < limits.length; i++) {
     if (image.length === i) {
       ({ image, seed } = calcImage(seed));
@@ -128,24 +129,28 @@ export function solve5(input) {
     let next = parseInt(image[i], 16);
     next = parseInt(next.toString(2).padStart(4, "0").slice(-3), 2) + 2;
     next = Math.min(Math.max(next, limits[level][0]), limits[level][1]);
-    levels[level + 1] += next;
+    counts[level + 1] += next;
+    levels[level].push(next);
     current++;
-    if (current === levels[level]) {
+    if (current === counts[level]) {
       current = 0;
       level++;
     }
   }
-  let forks = levels.slice(0, -1).reduce((a, b) => a + b);
-  return `${forks},${levels.at(-1)}`;
+  return { counts, levels };
 }
 
-export function solve6(input, image) {
+export function solve5(input) {
+  const { counts } = buildTree(input);
+  let forks = counts.slice(0, -1).reduce((a, b) => a + b);
+  return `${forks},${counts.at(-1)}`;
+}
+
+function calcLeaves(count, input, image) {
   let leaves = [];
   let seed = parseInt(input.slice(10, 15), 16);
   let leafDigits = image ? 4 : 999;
-  let growTime = image ? 4 : 1000;
   let energyIncrement = image ? 250 : 1000;
-  let count = +solve5(input).split(",").at(-1);
   if (!image) ({ image, seed } = calcImage(seed, count + leafDigits + 2));
   energyIncrement -= parseInt(image.slice(0, 2), 16);
   for (let i = 0; i < count; i++) {
@@ -153,8 +158,15 @@ export function solve6(input, image) {
     required = required.split("").map(x => parseInt(x, 16));
     required = required.reduce((a, b) => a + b);
     let producing = parseInt(image[2 + i + leafDigits], 16) + 1;
-    leaves.push({ required, producing, growing: -1 });
+    leaves.push({ required, producing });
   }
+  return { leaves, energyIncrement };
+}
+
+export function solve6(input, image) {
+  let growTime = image ? 4 : 1000;
+  let count = +solve5(input).split(",").at(-1);
+  let { leaves, energyIncrement } = calcLeaves(count, input, image);
   leaves = leaves.sort(
     (a, b) => a.required - b.required || b.producing - a.producing,
   );
@@ -180,11 +192,62 @@ export function solve6(input, image) {
   return `${time},${energyIncrement}`;
 }
 
+export function solve7(input, image, flowers = 100) {
+  let { counts, levels } = buildTree(input);
+  let { leaves } = calcLeaves(counts.at(-1), input, image);
+  if (Array.isArray(input)) levels = input;
+  if (Array.isArray(image)) leaves = image;
+  levels.push(
+    leaves.map((x, i) => ({
+      id: i + 1,
+      energy: x.producing,
+      children: null,
+      flowers: 0,
+    })),
+  );
+  for (let i = levels.length - 2; i >= 0; i--) {
+    let current = 0;
+    for (let j = 0; j < levels[i].length; j++) {
+      current += levels[i][j];
+      let children = levels[i + 1].slice(current - levels[i][j], current);
+      let energy = children.reduce((sum, x) => sum + x.energy, 0);
+      levels[i][j] = { id: j + 1, energy, children, flowers: 0 };
+    }
+  }
+  levels[0][0].flowers = flowers;
+  for (let i = 0; i < levels.length; i++) {
+    for (let j = 0; j < levels[i].length; j++) {
+      if (!levels[i][j].children) continue;
+      if (levels[i][j].flowers < 2) continue;
+      for (let k = 0; k < levels[i][j].flowers; k++) {
+        levels[i][j].children.sort(
+          (a, b) =>
+            b.energy / (b.flowers + 1) - a.energy / (a.flowers + 1) ||
+            a.flowers - b.flowers ||
+            a.id - b.id,
+        );
+        levels[i][j].children[0].flowers++;
+      }
+    }
+  }
+  let sum = 0;
+  let k = 1;
+  for (let i = levels.length - 1; i >= 0; i--) {
+    for (let j = 0; j < levels[i].length; j++) {
+      if (levels[i][j].flowers === 1) {
+        sum += levels[i][j].energy * k++;
+      }
+    }
+  }
+  return sum;
+}
+
 export function* solve(input) {
   yield solve1(input);
   yield solve2(input);
   yield solve3(input);
   yield solve4(input);
   yield solve5(input);
-  return solve6(input);
+  yield solve6(input);
+  return solve7(input);
 }
