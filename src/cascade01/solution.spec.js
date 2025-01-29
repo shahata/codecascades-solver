@@ -1,5 +1,5 @@
 import { solve1, solve2, solve3, solve4, solve5 } from "./solution.js";
-import { solve6, solve7 } from "./solution.js";
+import { solve6, solve7, solve8, growFlowers } from "./solution.js";
 import readInputs from "../utils/read-inputs.js";
 
 let inputs = readInputs(import.meta.url);
@@ -10,7 +10,7 @@ describe("cascade01 task01", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve1(...inputs)).toEqual(1935);
+    expect(solve1(...inputs.slice(0, 1))).toEqual(1935);
   });
 });
 
@@ -22,7 +22,7 @@ describe("cascade01 task02", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve2(...inputs)).toEqual("170a239e18e1");
+    expect(solve2(...inputs.slice(0, 1))).toEqual("170a239e18e1");
   });
 });
 
@@ -42,7 +42,7 @@ describe("cascade01 task03", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve3(...inputs)).toEqual(36461);
+    expect(solve3(...inputs.slice(0, 1))).toEqual(36461);
   });
 });
 
@@ -52,7 +52,7 @@ describe("cascade01 task04", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve4(...inputs)).toEqual("3201,3126,2911");
+    expect(solve4(...inputs.slice(0, 1))).toEqual("3201,3126,2911");
   });
 });
 
@@ -62,7 +62,7 @@ describe("cascade01 task05", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve5(...inputs)).toEqual("162385,730417");
+    expect(solve5(...inputs.slice(0, 1))).toEqual("162385,730417");
   });
 });
 
@@ -77,7 +77,7 @@ describe("cascade01 task06", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve6(...inputs)).toEqual("14884,6210354");
+    expect(solve6(...inputs.slice(0, 1))).toEqual("14884,6210354");
   });
 });
 
@@ -95,6 +95,22 @@ describe("cascade01 task07", () => {
   });
 
   test("it should work for input", () => {
-    expect(solve7(...inputs)).toEqual(228807506);
+    expect(solve7(...inputs.slice(0, 1))).toEqual(228807506);
+  });
+});
+
+describe("cascade01 task08", () => {
+  test("it should work for examples", () => {
+    expect(
+      solve8(
+        growFlowers([[3], [4, 2, 2]], [5, 10, 5, 5, 7, 8, 6, 6], 3),
+        19,
+        10,
+      ),
+    ).toEqual(2050);
+  });
+
+  test("it should work for input", () => {
+    expect(solve8(...inputs.slice(0, 2))).toEqual(1588897);
   });
 });

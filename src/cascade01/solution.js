@@ -220,15 +220,14 @@ function best(children, flowers) {
   return results[0].option;
 }
 
-export function solve7(input, image, flowers = 100) {
+export function growFlowers(input, image, flowers = 100) {
   let { counts, levels } = buildTree(input);
   let { leaves } = calcLeaves(counts.at(-1), input, image);
   if (Array.isArray(input)) levels = input;
   if (Array.isArray(image))
     leaves = image.map(x => ({ producing: x, required: 0 }));
   levels.push(
-    leaves.map((x, i) => ({
-      id: i + 1,
+    leaves.map(x => ({
       energy: x.producing,
       children: null,
       flowers: 0,
@@ -240,7 +239,8 @@ export function solve7(input, image, flowers = 100) {
       current += levels[i][j];
       let children = levels[i + 1].slice(current - levels[i][j], current);
       let energy = children.reduce((sum, x) => sum + x.energy, 0);
-      levels[i][j] = { id: j + 1, energy, children, flowers: 0 };
+      children.forEach((x, i) => (x.id = i));
+      levels[i][j] = { energy, children, flowers: 0 };
     }
   }
   levels[0][0].flowers = flowers;
@@ -261,25 +261,104 @@ export function solve7(input, image, flowers = 100) {
       // }
     }
   }
-  function dfs(node) {
-    if (node.flowers === 1) return [node.energy];
-    if (!node.children) return [];
-    let result = [];
-    for (let i = 0; i < node.children.length; i++) {
-      result = result.concat(dfs(node.children[i]));
-    }
-    return result;
+  return levels;
+}
+
+function dfs(node) {
+  if (node.flowers === 1) return [node];
+  if (!node.children) return [];
+  let result = [];
+  for (let i = 0; i < node.children.length; i++) {
+    node.children[i].parent = node;
+    result = result.concat(dfs(node.children[i]));
   }
-  let result = dfs(levels[0][0]);
+  return result;
+}
+
+export function solve7(input, image, flowers = 100) {
+  let levels = growFlowers(input, image, flowers);
+  let result = dfs(levels[0][0]).map(x => x.energy);
   return result.map((x, i) => x * (i + 1)).reduce((a, b) => a + b, 0);
 }
 
-export function* solve(input) {
+function findPath(from, to) {
+  let a = [];
+  let b = [];
+  while (from) {
+    a.push(from);
+    from = from.parent;
+  }
+  while (to) {
+    b.push(to);
+    to = to.parent;
+  }
+  while (a.at(-1) === b.at(-1)) {
+    a.pop();
+    b.pop();
+  }
+  return a.map(() => "P").concat(b.reverse().flatMap(x => ["C", x.id]));
+}
+
+export function solve8(input, reservoir, amount) {
+  let levels = input;
+  if (input.length === 32) {
+    amount = parseInt(input.slice(15, 16), 16);
+    amount = parseInt(amount.toString(2).slice(-3), 2) + 5;
+    levels = growFlowers(input);
+  }
+  let destinations = dfs(levels[0][0]).map(x => ({ ...x, need: amount }));
+  let needed = destinations.length * amount - reservoir;
+  let current = { position: levels[0][0], left: reservoir };
+  let commands = ["I", reservoir, "H", "U"];
+  while (destinations.length > 0) {
+    let next = destinations.shift();
+    while (next.need > 0) {
+      if (current.left === 0) {
+        while (current.position.parent) {
+          current.position = current.position.parent;
+          commands.push("P");
+        }
+        let take = Math.min(needed, reservoir);
+        commands.push("P", "H", "I", take, "H", "U");
+        current.left += take;
+        needed -= take;
+      }
+      let give = Math.min(next.need, current.left);
+      commands.push(...findPath(current.position, next), "D", give);
+      current.position = next;
+      current.left -= give;
+      next.need -= give;
+    }
+  }
+  while (current.position.parent) {
+    current.position = current.position.parent;
+    commands.push("P");
+  }
+  commands.push("P", "H");
+  commands = commands.flatMap((x, i) => {
+    let s = x => {
+      x = x.toString(2).padStart(6, "0");
+      return [parseInt(x.slice(0, 3), 2), parseInt(x.slice(3), 2)];
+    };
+    if (x === "U") return 0;
+    if (x === "H") return 1;
+    if (x === "P") return 2;
+    if (x === "C") return 3;
+    if (x === "I") return 4;
+    if (x === "D") return 5;
+    if (commands[i - 1] === "C") return s(x);
+    return s(x - 1);
+  });
+  return commands.map((x, i) => x * (i + 1)).reduce((a, b) => a + b, 0);
+}
+
+export function* solve(input, reservoir) {
   yield solve1(input);
   yield solve2(input);
   yield solve3(input);
   yield solve4(input);
   yield solve5(input);
   yield solve6(input);
-  return solve7(input);
+  yield solve7(input);
+  return solve8(input, reservoir);
 }
