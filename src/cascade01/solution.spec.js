@@ -77,19 +77,13 @@ describe("cascade01 task06", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve6(...inputs)).toEqual("14884,6210354");
+    expect(solve6(...inputs)).toEqual("14884,6210354");
   });
 });
 
 describe("cascade01 task07", () => {
   test("it should work for examples", () => {
-    expect(
-      solve7(
-        [[3], [4, 2, 2]],
-        [5, 5, 10, 5, 7, 8, 6, 6].map(x => ({ producing: x })),
-        3,
-      ),
-    ).toEqual(70);
+    expect(solve7([[3], [4, 2, 2]], [5, 5, 10, 5, 7, 8, 6, 6], 3)).toEqual(70);
 
     expect(
       solve7(
@@ -101,6 +95,6 @@ describe("cascade01 task07", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve7(...inputs)).toEqual(267007482);
+    expect(solve7(...inputs)).toEqual(228807506);
   });
 });

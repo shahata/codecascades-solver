@@ -192,11 +192,40 @@ export function solve6(input, image) {
   return `${time},${energyIncrement}`;
 }
 
+function all(flowers, count) {
+  if (count === 1) return [[flowers]];
+  let result = [];
+  for (let i = flowers; i >= 0; i--) {
+    all(flowers - i, count - 1).forEach(x => result.push([i, ...x]));
+  }
+  return result;
+}
+
+function test(option, children) {
+  let after = children.map((x, i) =>
+    option[i] === 0 ? 0 : x.energy / option[i],
+  );
+  let min = Math.min(...after.filter(x => x > 0));
+  let total = after.reduce((sum, x) => sum + x, 0);
+  return { min, total, option };
+}
+
+function best(children, flowers) {
+  let options = all(flowers, children.length);
+  let results = options.map(option => test(option, children));
+  let max = results.reduce((max, x) => Math.max(max, x.min), 0);
+  results = results.filter(x => x.min === max);
+  max = results.reduce((max, x) => Math.max(max, x.total), 0);
+  results = results.filter(x => x.total === max);
+  return results[0].option;
+}
+
 export function solve7(input, image, flowers = 100) {
   let { counts, levels } = buildTree(input);
   let { leaves } = calcLeaves(counts.at(-1), input, image);
   if (Array.isArray(input)) levels = input;
-  if (Array.isArray(image)) leaves = image;
+  if (Array.isArray(image))
+    leaves = image.map(x => ({ producing: x, required: 0 }));
   levels.push(
     leaves.map((x, i) => ({
       id: i + 1,
@@ -219,27 +248,30 @@ export function solve7(input, image, flowers = 100) {
     for (let j = 0; j < levels[i].length; j++) {
       if (!levels[i][j].children) continue;
       if (levels[i][j].flowers < 2) continue;
-      for (let k = 0; k < levels[i][j].flowers; k++) {
-        levels[i][j].children.sort(
-          (a, b) =>
-            b.energy / (b.flowers + 1) - a.energy / (a.flowers + 1) ||
-            a.flowers - b.flowers ||
-            a.id - b.id,
-        );
-        levels[i][j].children[0].flowers++;
-      }
+      let option = best(levels[i][j].children, levels[i][j].flowers);
+      option.forEach((x, k) => (levels[i][j].children[k].flowers = x));
+      // for (let k = 0; k < levels[i][j].flowers; k++) {
+      //   levels[i][j].children.sort(
+      //     (a, b) =>
+      //       b.energy / (b.flowers + 1) - a.energy / (a.flowers + 1) ||
+      //       a.flowers - b.flowers ||
+      //       a.id - b.id,
+      //   );
+      //   levels[i][j].children[0].flowers++;
+      // }
     }
   }
-  let sum = 0;
-  let k = 1;
-  for (let i = levels.length - 1; i >= 0; i--) {
-    for (let j = 0; j < levels[i].length; j++) {
-      if (levels[i][j].flowers === 1) {
-        sum += levels[i][j].energy * k++;
-      }
+  function dfs(node) {
+    if (node.flowers === 1) return [node.energy];
+    if (!node.children) return [];
+    let result = [];
+    for (let i = 0; i < node.children.length; i++) {
+      result = result.concat(dfs(node.children[i]));
     }
+    return result;
   }
-  return sum;
+  let result = dfs(levels[0][0]);
+  return result.map((x, i) => x * (i + 1)).reduce((a, b) => a + b, 0);
 }
 
 export function* solve(input) {
