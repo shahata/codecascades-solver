@@ -303,7 +303,7 @@ export function solve8(input, reservoir, amount) {
   let levels = input;
   if (input.length === 32) {
     amount = parseInt(input.slice(15, 16), 16);
-    amount = parseInt(amount.toString(2).slice(-3), 2) + 5;
+    amount = parseInt(amount.toString(2).padStart(4, "0").slice(-3), 2) + 5;
     levels = growFlowers(input);
   }
   let destinations = dfs(levels[0][0]).map(x => ({ ...x, need: amount }));
@@ -352,13 +352,44 @@ export function solve8(input, reservoir, amount) {
   return commands.map((x, i) => x * (i + 1)).reduce((a, b) => a + b, 0);
 }
 
-export function* solve(input, reservoir) {
+export function solve9(input, reservoir, seeds, best = 20) {
+  let sex = parseInt(input.slice(15, 16), 16).toString(2);
+  sex = sex.padStart(4, "0").slice(0, 1); //?
+  return seeds
+    .split("\n")
+    .filter(x => {
+      let sex2 = parseInt(x.slice(15, 16), 16).toString(2);
+      sex2 = sex2.padStart(4, "0").slice(0, 1);
+      return sex !== sex2;
+    })
+    .map(x => {
+      let volume = solve4(x)
+        .split(",")
+        .map(x => parseInt(x))
+        .reduce((a, b) => a * b, 1);
+      return { volume, seed: x };
+    })
+    .sort((a, b) => a.volume - b.volume || a.seed.localeCompare(b.seed))
+    .slice(0, best)
+    .map(x => {
+      console.log("V", x.volume, x.seed);
+      let time = +solve6(x.seed).split(",")[0];
+      console.log("T", time, x.seed);
+      return { time, seed: x.seed, volume: x.volume };
+    })
+    .sort((a, b) => a.time - b.time || a.seed.localeCompare(b.seed))
+    .at(0);
+}
+
+export function* solve(input, reservoir, seeds) {
+  if (!seeds) return;
   yield solve1(input);
-  yield solve2(input);
-  yield solve3(input);
-  yield solve4(input);
-  yield solve5(input);
-  yield solve6(input);
-  yield solve7(input);
-  return solve8(input, reservoir);
+  // yield solve2(input);
+  // yield solve3(input);
+  // yield solve4(input);
+  // yield solve5(input);
+  // yield solve6(input);
+  // yield solve7(input);
+  // yield solve8(input, reservoir);
+  return solve9(input, reservoir, seeds);
 }
