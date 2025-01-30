@@ -77,7 +77,7 @@ describe("cascade01 task06", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve6(...inputs.slice(0, 1))).toEqual("14884,6210354");
+    expect(solve6(...inputs.slice(0, 1))).toEqual("14884,6210354");
   });
 });
 
@@ -95,7 +95,7 @@ describe("cascade01 task07", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve7(...inputs.slice(0, 1))).toEqual(228807506);
+    expect(solve7(...inputs.slice(0, 1))).toEqual(228807506);
   });
 });
 
@@ -111,7 +111,7 @@ describe("cascade01 task08", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve8(...inputs.slice(0, 2))).toEqual(1588897);
+    expect(solve8(...inputs.slice(0, 2))).toEqual(1588897);
   });
 });
 
@@ -137,6 +137,8 @@ describe("cascade01 task09", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve9(...inputs.slice(0, 3))).toEqual(1588897);
+    expect(solve9(...inputs.slice(0, 3))).toEqual(
+      "2aec5d50bad3315f844e22eaf8384ce1",
+    );
   });
 });
