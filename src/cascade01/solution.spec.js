@@ -1,5 +1,6 @@
 import { solve1, solve2, solve3, solve4, solve5 } from "./solution.js";
-import { solve6, solve7, solve8, growFlowers, solve9 } from "./solution.js";
+import { solve6, solve7, solve8, solve9, solve10 } from "./solution.js";
+import { growFlowers } from "./solution.js";
 import readInputs from "../utils/read-inputs.js";
 
 let inputs = readInputs(import.meta.url);
@@ -140,5 +141,21 @@ describe("cascade01 task09", () => {
     expect(solve9(...inputs.slice(0, 3))).toEqual(
       "2aec5d50bad3315f844e22eaf8384ce1",
     );
+  });
+});
+
+describe("cascade01 task10", () => {
+  test("it should work for examples", () => {
+    expect(
+      solve8(
+        growFlowers([[3], [4, 2, 2]], [5, 10, 5, 5, 7, 8, 6, 6], 3),
+        19,
+        10,
+      ),
+    ).toEqual(2050);
+  });
+
+  test("it should work for input", () => {
+    expect(solve10(...inputs.slice(0, 4))).toEqual(inputs.at(-1));
   });
 });

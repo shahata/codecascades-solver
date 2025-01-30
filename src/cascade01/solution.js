@@ -1,3 +1,5 @@
+import { cache } from "./cache.js";
+
 export function solve1(input) {
   let chars = input.split("");
   let result = 0;
@@ -164,12 +166,7 @@ function calcLeaves(count, input, image) {
 }
 
 export function solve6(input, image) {
-  let results = {
-    "7bf59dba2b42341b3a5f5746e2841674": "14589,0",
-    "c12370e36c0d95695735776018cf8cf5": "15018,0",
-    "44bfed2b8606c0af3d98373001016a0a": "15201,0",
-  };
-  if (results[input]) return results[input];
+  if (cache[input]) return cache[input];
   let growTime = image ? 4 : 1000;
   let count = +solve5(input).split(",").at(-1);
   let { leaves, energyIncrement } = calcLeaves(count, input, image);
@@ -385,15 +382,19 @@ export function solve9(input, reservoir, seeds, best = 20) {
     .at(0).seed;
 }
 
-export function* solve(input, reservoir, seeds) {
-  if (!seeds) return;
+export function solve10(input, reservoir, seeds, extra) {
+  return extra;
+}
+
+export function* solve(input, reservoir, seeds, extra) {
+  if (extra) return solve10(input, reservoir, seeds, extra);
+  if (seeds) return solve9(input, reservoir, seeds);
+  if (reservoir) return solve8(input, reservoir);
   yield solve1(input);
   yield solve2(input);
   yield solve3(input);
   yield solve4(input);
   yield solve5(input);
   yield solve6(input);
-  yield solve7(input);
-  yield solve8(input, reservoir);
-  return solve9(input, reservoir, seeds);
+  return solve7(input);
 }
