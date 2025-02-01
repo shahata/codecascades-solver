@@ -147,15 +147,20 @@ describe("cascade01 task09", () => {
 describe("cascade01 task10", () => {
   test("it should work for examples", () => {
     expect(
-      solve8(
+      solve10(
         growFlowers([[3], [4, 2, 2]], [5, 10, 5, 5, 7, 8, 6, 6], 3),
-        19,
+        "17",
+        growFlowers([[3], [2, 2, 4]], [7, 8, 6, 6, 5, 10, 5, 5], 3),
+        "19",
         10,
+        11,
       ),
-    ).toEqual(2050);
+    ).toEqual("3364:197,15279:373");
   });
 
   test("it should work for input", () => {
-    expect(solve10(...inputs.slice(0, 4))).toEqual(inputs.at(-1));
+    expect(solve10(...inputs.slice(0, 4))).toEqual(
+      "2893533:5575,2799220:5515,2886421:5509,2474862:5457",
+    );
   });
 });

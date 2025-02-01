@@ -302,6 +302,27 @@ function findPath(from, to) {
   return a.map(() => "P").concat(b.reverse().flatMap(x => ["C", x.id]));
 }
 
+function commandsChecksum(commands) {
+  commands = commands.flatMap((x, i) => {
+    let s = x => {
+      x = x.toString(2).padStart(6, "0");
+      return [parseInt(x.slice(0, 3), 2), parseInt(x.slice(3), 2)];
+    };
+    if (x === "U") return 0;
+    if (x === "H") return 1;
+    if (x === "P") return 2;
+    if (x === "C") return 3;
+    if (x === "I") return 4;
+    if (x === "D") return 5;
+    if (x === "S") return 6;
+    if (x === "V") return 7;
+    if (commands[i - 1] === "C") return s(x);
+    if (commands[i - 1] === "S") return s(x)[1];
+    return s(x - 1);
+  });
+  return commands.map((x, i) => x * (i + 1)).reduce((a, b) => a + b, 0);
+}
+
 export function solve8(input, reservoir, amount) {
   let levels = input;
   if (input.length === 32) {
@@ -309,6 +330,7 @@ export function solve8(input, reservoir, amount) {
     amount = parseInt(amount.toString(2).padStart(4, "0").slice(-3), 2) + 5;
     levels = growFlowers(input);
   }
+  reservoir = +reservoir;
   let destinations = dfs(levels[0][0]).map(x => ({ ...x, need: amount }));
   let needed = destinations.length * amount - reservoir;
   let current = { position: levels[0][0], left: reservoir };
@@ -338,26 +360,12 @@ export function solve8(input, reservoir, amount) {
     commands.push("P");
   }
   commands.push("P", "H");
-  commands = commands.flatMap((x, i) => {
-    let s = x => {
-      x = x.toString(2).padStart(6, "0");
-      return [parseInt(x.slice(0, 3), 2), parseInt(x.slice(3), 2)];
-    };
-    if (x === "U") return 0;
-    if (x === "H") return 1;
-    if (x === "P") return 2;
-    if (x === "C") return 3;
-    if (x === "I") return 4;
-    if (x === "D") return 5;
-    if (commands[i - 1] === "C") return s(x);
-    return s(x - 1);
-  });
-  return commands.map((x, i) => x * (i + 1)).reduce((a, b) => a + b, 0);
+  return commandsChecksum(commands);
 }
 
 export function solve9(input, reservoir, seeds, best = 20) {
   let sex = parseInt(input.slice(15, 16), 16).toString(2);
-  sex = sex.padStart(4, "0").slice(0, 1); //?
+  sex = sex.padStart(4, "0").slice(0, 1);
   return seeds
     .split("\n")
     .filter(x => {
@@ -382,8 +390,110 @@ export function solve9(input, reservoir, seeds, best = 20) {
     .at(0).seed;
 }
 
-export function solve10(input, reservoir, seeds, extra) {
-  return extra;
+function emptyReservoir(ant, backToRoot = false) {
+  while (ant.position.parent) {
+    ant.position = ant.position.parent;
+    ant.commands.push("P");
+    ant.time += 5;
+  }
+  ant.commands.push("P", "V", "H", "D", ant.nectar);
+  ant.time += 17 + ant.nectar;
+  ant.nectar = 0;
+
+  if (backToRoot) {
+    ant.commands.push("H", "U", "U");
+    ant.time += 15;
+  } else ant.position = null;
+}
+
+function takeNectar(ant, next) {
+  let take = Math.min(next.nectar, ant.reservoir - ant.nectar);
+  let path = findPath(ant.position, next);
+  ant.commands.push(...path, "I", take);
+  ant.time += path.filter(x => !Number.isInteger(x)).length * 5 + 2 + take;
+  ant.position = next;
+  ant.nectar += take;
+  next.nectar -= take;
+}
+
+function switchTree(ant, root) {
+  ant.commands.push("H", "U", "H", "U");
+  ant.time += 50;
+  ant.maleTree = !ant.maleTree;
+  ant.position = root;
+}
+
+function dumpPollens(ant, flevels, fdests) {
+  emptyReservoir(ant);
+  switchTree(ant, flevels[0][0]);
+  for (let i = 0; i < ant.pollens.length; i++) {
+    let pollen = ant.pollens[i];
+    let next = fdests.find(x => x.i === pollen);
+    fdests = fdests.filter(x => x.i !== pollen);
+    while (next.nectar > 0) {
+      if (ant.nectar === ant.reservoir) emptyReservoir(ant, true);
+      takeNectar(ant, next);
+    }
+    ant.commands.push("S", i + 1, "D", 1, "S", 0);
+    ant.time += 6;
+  }
+  ant.pollens = [];
+  emptyReservoir(ant);
+}
+
+export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
+  let mlevels = input;
+  let flevels = seeds;
+  if (input.length === 32) {
+    let female = solve9(input, reservoir, seeds);
+    mnectar = parseInt(input.slice(15, 16), 16).toString(2).padStart(4, "0");
+    mnectar = 22 - parseInt(mnectar.slice(-3).split("").reverse().join(""), 2);
+    fnectar = parseInt(input.slice(15, 16), 16).toString(2).padStart(4, "0");
+    fnectar = 22 - parseInt(fnectar.slice(-3).split("").reverse().join(""), 2);
+    mlevels = growFlowers(input);
+    flevels = growFlowers(female);
+    console.log("nectar", mnectar, fnectar);
+  }
+  reservoir = [+reservoir, ...extra.split(",").map(x => +x)];
+  let mdests = dfs(mlevels[0][0]).map((x, i) => ({ ...x, nectar: mnectar, i }));
+  let fdests = dfs(flevels[0][0]).map((x, i) => ({ ...x, nectar: fnectar, i }));
+  let ants = reservoir.map(x => ({
+    position: null,
+    reservoir: x,
+    nectar: 0,
+    pollens: [],
+    commands: [],
+    time: 0,
+    maleTree: true,
+  }));
+  while (mdests.length > 0) {
+    let next = mdests.shift();
+    let ant = ants.toSorted(
+      (a, b) => a.time - b.time || b.reservoir - a.reservoir,
+    )[0];
+    if (!ant.maleTree) switchTree(ant, mlevels[0][0]);
+    if (!ant.position) {
+      ant.position = mlevels[0][0];
+      ant.commands.push("H", "U", "U");
+      ant.time += 15;
+    }
+    while (next.nectar > 0) {
+      if (ant.nectar === ant.reservoir) emptyReservoir(ant, true);
+      takeNectar(ant, next);
+    }
+    ant.pollens.push(next.i);
+    ant.commands.push("S", ant.pollens.length, "I", 1, "S", 0);
+    ant.time += 6;
+    if (ant.pollens.length === 5) dumpPollens(ant, flevels, fdests);
+    else if (ant.nectar === ant.reservoir) emptyReservoir(ant);
+  }
+  ants
+    .filter(ant => ant.maleTree)
+    .forEach(ant => dumpPollens(ant, flevels, fdests));
+
+  return ants
+    .map(ant => `${commandsChecksum(ant.commands)}:${ant.time}`)
+    .join(",");
 }
 
 export function* solve(input, reservoir, seeds, extra) {
