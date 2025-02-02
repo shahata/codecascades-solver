@@ -486,7 +486,7 @@ export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
     let female = solve9(input, reservoir, seeds);
     mnectar = parseInt(input.slice(15, 16), 16).toString(2).padStart(4, "0");
     mnectar = 22 - parseInt(mnectar.slice(-3).split("").reverse().join(""), 2);
-    fnectar = parseInt(input.slice(15, 16), 16).toString(2).padStart(4, "0");
+    fnectar = parseInt(female.slice(15, 16), 16).toString(2).padStart(4, "0");
     fnectar = 22 - parseInt(fnectar.slice(-3).split("").reverse().join(""), 2);
     mlevels = growFlowers(input);
     flevels = growFlowers(female);
