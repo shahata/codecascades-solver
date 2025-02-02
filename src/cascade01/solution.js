@@ -390,6 +390,34 @@ export function solve9(input, reservoir, seeds, best = 20) {
     .at(0).seed;
 }
 
+let locks = [];
+function resolveConflicts(count = 0) {
+  // let found = false;
+  for (let lock of locks) {
+    let before = locks.find(
+      x =>
+        x !== lock &&
+        x.maleTree === lock.maleTree &&
+        ((x.start < lock.start && x.end > lock.start) ||
+          (x.start === lock.start && x.ant.reservoir > lock.ant.reservoir)),
+    );
+    if (before) {
+      // found = true;
+      let diff = before.end - lock.start;
+      lock.ant.time += diff;
+      locks
+        .filter(x => x.ant === lock.ant && x.start >= lock.start)
+        .forEach(x => {
+          x.start += diff;
+          x.end += diff;
+        });
+      resolveConflicts(count + 1);
+      break;
+    }
+  }
+  // if (!found) console.log(count ? `Fixed ${count} conflicts` : "No conflicts");
+}
+
 function emptyReservoir(ant, backToRoot = false) {
   while (ant.position.parent) {
     ant.position = ant.position.parent;
@@ -397,7 +425,17 @@ function emptyReservoir(ant, backToRoot = false) {
     ant.time += 5;
   }
   ant.commands.push("P", "V", "H", "D", ant.nectar);
-  ant.time += 17 + ant.nectar;
+  ant.time += 15;
+
+  locks.push({
+    ant,
+    maleTree: ant.maleTree,
+    start: ant.time,
+    end: ant.time + 2 + ant.nectar,
+  });
+  resolveConflicts();
+
+  ant.time += 2 + ant.nectar;
   ant.nectar = 0;
 
   if (backToRoot) {
@@ -452,7 +490,6 @@ export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
     fnectar = 22 - parseInt(fnectar.slice(-3).split("").reverse().join(""), 2);
     mlevels = growFlowers(input);
     flevels = growFlowers(female);
-    console.log("nectar", mnectar, fnectar);
   }
   reservoir = [+reservoir, ...extra.split(",").map(x => +x)];
   let mdests = dfs(mlevels[0][0]).map((x, i) => ({ ...x, nectar: mnectar, i }));
