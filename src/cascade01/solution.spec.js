@@ -96,7 +96,7 @@ describe("cascade01 task07", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve7(...inputs.slice(0, 1))).toEqual(228807506);
+    expect(solve7(...inputs.slice(0, 1))).toEqual(228807506);
   });
 });
 
@@ -112,7 +112,7 @@ describe("cascade01 task08", () => {
   });
 
   test("it should work for input", () => {
-    // expect(solve8(...inputs.slice(0, 2))).toEqual(1588897);
+    expect(solve8(...inputs.slice(0, 2))).toEqual(1588897);
   });
 });
 
@@ -171,5 +171,6 @@ describe("cascade01 task10", () => {
     // 2400406:5795,2263482:5346,2410414:5581,2441848:5549
     // 2428053:5286,2407332:5162,2513348:5209,2455195:5257
     // 2428053:5282,2407332:5160,2513348:5207,2455195:5254
+    // 2428053:5274,2407332:5152,2526624:5198,2449025:5245
   });
 });

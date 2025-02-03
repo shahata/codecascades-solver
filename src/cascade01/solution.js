@@ -326,8 +326,7 @@ function commandsChecksum(commands) {
 export function solve8(input, reservoir, amount) {
   let levels = input;
   if (input.length === 32) {
-    amount = parseInt(input.slice(15, 16), 16);
-    amount = parseInt(amount.toString(2).padStart(4, "0").slice(-3), 2) + 5;
+    amount = (parseInt(input.slice(15, 16), 16) % 8) + 5;
     levels = growFlowers(input);
   }
   reservoir = +reservoir;
@@ -473,17 +472,24 @@ export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
   }));
   let antsSorted = ants.toSorted((a, b) => b.reservoir - a.reservoir);
   let time = 0;
-  let mcontainerQueue = [];
-  let fcontainerQueue = [];
+  let mQueue = [];
+  let fQueue = [];
   let done = false;
   while (!done) {
     done = true;
     for (let ant of antsSorted) {
+      if (ant.time.length > 0) {
+        if (ant.time[0] === "RM") mQueue.shift().ant.time.shift();
+        if (ant.time[0] === "RF") fQueue.shift().ant.time.shift();
+        if (ant.time.length === 0) ant.finished = time;
+      }
+    }
+    for (let ant of antsSorted) {
       if (ant.time.length === 0) {
-        let next = mdests.shift();
-        if (next) {
+        if (mdests.length > 0) {
+          let next = mdests.shift();
           if (!ant.maleTree) switchTree(ant, mlevels[0][0]);
-          if (!ant.position) {
+          else if (!ant.position) {
             ant.position = mlevels[0][0];
             ant.commands.push("H", "U", "U");
             ant.time.push(15);
@@ -497,51 +503,54 @@ export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
           ant.time.push(6);
           if (ant.pollens.length === 5) dumpPollens(ant, flevels, fdests);
           else if (ant.nectar === ant.reservoir) emptyReservoir(ant);
-        } else if (ant.maleTree) {
-          dumpPollens(ant, flevels, fdests);
-        }
+        } else if (ant.maleTree) dumpPollens(ant, flevels, fdests);
       }
       if (ant.time.length > 0) {
         done = false;
         if (ant.time[0] === "QM") {
-          mcontainerQueue.push(ant);
-          ant.time.shift();
-        }
-        if (ant.time[0] === "WM") {
-          if (mcontainerQueue[0] !== ant) continue;
-          ant.time.shift();
-        }
-        if (ant.time[0] === "RM") {
-          mcontainerQueue.shift();
+          mQueue.push({ ant, time });
           ant.time.shift();
         }
         if (ant.time[0] === "QF") {
-          fcontainerQueue.push(ant);
+          fQueue.push({ ant, time });
           ant.time.shift();
+        }
+        if (ant.time[0] === "WM") {
+          if (mQueue[0].ant !== ant) continue;
+          ant.time.shift();
+          // let x = mQueue[0];
+          // console.log(
+          //   JSON.stringify({
+          //     tree: "male",
+          //     ant: ant.reservoir,
+          //     start: x.time,
+          //     wait: time - x.time,
+          //     release: time,
+          //     end: time + ant.time[0],
+          //   }),
+          // );
         }
         if (ant.time[0] === "WF") {
-          if (fcontainerQueue[0] !== ant) continue;
+          if (fQueue[0].ant !== ant) continue;
           ant.time.shift();
+          // let x = fQueue[0];
+          // console.log(
+          //   JSON.stringify({
+          //     tree: "female",
+          //     ant: ant.reservoir,
+          //     start: x.time,
+          //     wait: time - x.time,
+          //     release: time,
+          //     end: time + ant.time[0],
+          //   }),
+          // );
         }
-        if (ant.time[0] === "RF") {
-          // fcontainerQueue.shift();
-          ant.time.shift();
-        }
-        if (ant.time.length > 0) {
-          ant.time[0]--;
-          if (ant.time[0] === 0) ant.time.shift();
-          if (ant.time[0] === "RF") {
-            fcontainerQueue.shift();
-            // ant.time.shift();
-          }
-        } else {
-          ant.finished = time;
-        }
+        ant.time[0]--;
+        if (ant.time[0] === 0) ant.time.shift();
       }
     }
     time++;
   }
-
   return ants
     .map(ant => `${commandsChecksum(ant.commands)}:${ant.finished}`)
     .join(",");
