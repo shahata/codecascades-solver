@@ -390,57 +390,25 @@ export function solve9(input, reservoir, seeds, best = 20) {
     .at(0).seed;
 }
 
-let locks = [];
-function resolveConflicts(count = 0) {
-  // let found = false;
-  for (let lock of locks) {
-    let before = locks.find(
-      x =>
-        x !== lock &&
-        x.maleTree === lock.maleTree &&
-        ((x.start < lock.start && x.end > lock.start) ||
-          (x.start === lock.start && x.ant.reservoir > lock.ant.reservoir)),
-    );
-    if (before) {
-      // found = true;
-      let diff = before.end - lock.start;
-      lock.ant.time += diff;
-      locks
-        .filter(x => x.ant === lock.ant && x.start >= lock.start)
-        .forEach(x => {
-          x.start += diff;
-          x.end += diff;
-        });
-      resolveConflicts(count + 1);
-      break;
-    }
-  }
-  // if (!found) console.log(count ? `Fixed ${count} conflicts` : "No conflicts");
-}
-
 function emptyReservoir(ant, backToRoot = false) {
   while (ant.position.parent) {
     ant.position = ant.position.parent;
     ant.commands.push("P");
-    ant.time += 5;
+    ant.time.push(5);
   }
   ant.commands.push("P", "V", "H", "D", ant.nectar);
-  ant.time += 15;
+  ant.time.push(15);
 
-  locks.push({
-    ant,
-    maleTree: ant.maleTree,
-    start: ant.time,
-    end: ant.time + 2 + ant.nectar,
-  });
-  resolveConflicts();
-
-  ant.time += 2 + ant.nectar;
+  if (ant.maleTree) {
+    ant.time.push("QM", "WM", 2 + ant.nectar, "RM");
+  } else {
+    ant.time.push("QF", "WF", 2 + ant.nectar, "RF");
+  }
   ant.nectar = 0;
 
   if (backToRoot) {
     ant.commands.push("H", "U", "U");
-    ant.time += 15;
+    ant.time.push(15);
   } else ant.position = null;
 }
 
@@ -448,7 +416,7 @@ function takeNectar(ant, next) {
   let take = Math.min(next.nectar, ant.reservoir - ant.nectar);
   let path = findPath(ant.position, next);
   ant.commands.push(...path, "I", take);
-  ant.time += path.filter(x => !Number.isInteger(x)).length * 5 + 2 + take;
+  ant.time.push(path.filter(x => !Number.isInteger(x)).length * 5 + 2 + take);
   ant.position = next;
   ant.nectar += take;
   next.nectar -= take;
@@ -456,7 +424,7 @@ function takeNectar(ant, next) {
 
 function switchTree(ant, root) {
   ant.commands.push("H", "U", "H", "U");
-  ant.time += 50;
+  ant.time.push(50);
   ant.maleTree = !ant.maleTree;
   ant.position = root;
 }
@@ -473,7 +441,7 @@ function dumpPollens(ant, flevels, fdests) {
       takeNectar(ant, next);
     }
     ant.commands.push("S", i + 1, "D", 1, "S", 0);
-    ant.time += 6;
+    ant.time.push(6);
   }
   ant.pollens = [];
   emptyReservoir(ant);
@@ -500,36 +468,82 @@ export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
     nectar: 0,
     pollens: [],
     commands: [],
-    time: 0,
+    time: [],
     maleTree: true,
   }));
-  while (mdests.length > 0) {
-    let next = mdests.shift();
-    let ant = ants.toSorted(
-      (a, b) => a.time - b.time || b.reservoir - a.reservoir,
-    )[0];
-    if (!ant.maleTree) switchTree(ant, mlevels[0][0]);
-    if (!ant.position) {
-      ant.position = mlevels[0][0];
-      ant.commands.push("H", "U", "U");
-      ant.time += 15;
+  let antsSorted = ants.toSorted((a, b) => b.reservoir - a.reservoir);
+  let time = 0;
+  let mcontainerQueue = [];
+  let fcontainerQueue = [];
+  let done = false;
+  while (!done) {
+    done = true;
+    for (let ant of antsSorted) {
+      if (ant.time.length === 0) {
+        let next = mdests.shift();
+        if (next) {
+          if (!ant.maleTree) switchTree(ant, mlevels[0][0]);
+          if (!ant.position) {
+            ant.position = mlevels[0][0];
+            ant.commands.push("H", "U", "U");
+            ant.time.push(15);
+          }
+          while (next.nectar > 0) {
+            if (ant.nectar === ant.reservoir) emptyReservoir(ant, true);
+            takeNectar(ant, next);
+          }
+          ant.pollens.push(next.i);
+          ant.commands.push("S", ant.pollens.length, "I", 1, "S", 0);
+          ant.time.push(6);
+          if (ant.pollens.length === 5) dumpPollens(ant, flevels, fdests);
+          else if (ant.nectar === ant.reservoir) emptyReservoir(ant);
+        } else if (ant.maleTree) {
+          dumpPollens(ant, flevels, fdests);
+        }
+      }
+      if (ant.time.length > 0) {
+        done = false;
+        if (ant.time[0] === "QM") {
+          mcontainerQueue.push(ant);
+          ant.time.shift();
+        }
+        if (ant.time[0] === "WM") {
+          if (mcontainerQueue[0] !== ant) continue;
+          ant.time.shift();
+        }
+        if (ant.time[0] === "RM") {
+          mcontainerQueue.shift();
+          ant.time.shift();
+        }
+        if (ant.time[0] === "QF") {
+          fcontainerQueue.push(ant);
+          ant.time.shift();
+        }
+        if (ant.time[0] === "WF") {
+          if (fcontainerQueue[0] !== ant) continue;
+          ant.time.shift();
+        }
+        if (ant.time[0] === "RF") {
+          // fcontainerQueue.shift();
+          ant.time.shift();
+        }
+        if (ant.time.length > 0) {
+          ant.time[0]--;
+          if (ant.time[0] === 0) ant.time.shift();
+          if (ant.time[0] === "RF") {
+            fcontainerQueue.shift();
+            // ant.time.shift();
+          }
+        } else {
+          ant.finished = time;
+        }
+      }
     }
-    while (next.nectar > 0) {
-      if (ant.nectar === ant.reservoir) emptyReservoir(ant, true);
-      takeNectar(ant, next);
-    }
-    ant.pollens.push(next.i);
-    ant.commands.push("S", ant.pollens.length, "I", 1, "S", 0);
-    ant.time += 6;
-    if (ant.pollens.length === 5) dumpPollens(ant, flevels, fdests);
-    else if (ant.nectar === ant.reservoir) emptyReservoir(ant);
+    time++;
   }
-  ants
-    .filter(ant => ant.maleTree)
-    .forEach(ant => dumpPollens(ant, flevels, fdests));
 
   return ants
-    .map(ant => `${commandsChecksum(ant.commands)}:${ant.time}`)
+    .map(ant => `${commandsChecksum(ant.commands)}:${ant.finished}`)
     .join(",");
 }
 
