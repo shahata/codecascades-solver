@@ -253,15 +253,6 @@ export function growFlowers(input, image, flowers = 100) {
       if (levels[i][j].flowers < 2) continue;
       let option = best(levels[i][j].children, levels[i][j].flowers);
       option.forEach((x, k) => (levels[i][j].children[k].flowers = x));
-      // for (let k = 0; k < levels[i][j].flowers; k++) {
-      //   levels[i][j].children.sort(
-      //     (a, b) =>
-      //       b.energy / (b.flowers + 1) - a.energy / (a.flowers + 1) ||
-      //       a.flowers - b.flowers ||
-      //       a.id - b.id,
-      //   );
-      //   levels[i][j].children[0].flowers++;
-      // }
     }
   }
   return levels;
@@ -432,9 +423,7 @@ function dumpPollens(ant, flevels, fdests) {
   emptyReservoir(ant);
   switchTree(ant, flevels[0][0]);
   for (let i = 0; i < ant.pollens.length; i++) {
-    let pollen = ant.pollens[i];
-    let next = fdests.find(x => x.i === pollen);
-    fdests = fdests.filter(x => x.i !== pollen);
+    let next = fdests.find(x => x.i === ant.pollens[i]);
     while (next.nectar > 0) {
       if (ant.nectar === ant.reservoir) emptyReservoir(ant, true);
       takeNectar(ant, next);
@@ -518,32 +507,10 @@ export function solve10(input, reservoir, seeds, extra, mnectar, fnectar) {
         if (ant.time[0] === "WM") {
           if (mQueue[0].ant !== ant) continue;
           ant.time.shift();
-          // let x = mQueue[0];
-          // console.log(
-          //   JSON.stringify({
-          //     tree: "male",
-          //     ant: ant.reservoir,
-          //     start: x.time,
-          //     wait: time - x.time,
-          //     release: time,
-          //     end: time + ant.time[0],
-          //   }),
-          // );
         }
         if (ant.time[0] === "WF") {
           if (fQueue[0].ant !== ant) continue;
           ant.time.shift();
-          // let x = fQueue[0];
-          // console.log(
-          //   JSON.stringify({
-          //     tree: "female",
-          //     ant: ant.reservoir,
-          //     start: x.time,
-          //     wait: time - x.time,
-          //     release: time,
-          //     end: time + ant.time[0],
-          //   }),
-          // );
         }
         ant.time[0]--;
         if (ant.time[0] === 0) ant.time.shift();

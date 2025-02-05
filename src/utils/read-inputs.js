@@ -4,12 +4,12 @@ import { readdirSync } from "node:fs";
 
 function getAllInputs(dir) {
   return readdirSync(dir)
-    .filter(x => x.match(/^task\d+\.txt$/))
+    .filter(x => x.match(/^input\d+\.txt$/))
     .map(x => parseInt(x.match(/\d+/).shift()))
     .sort((a, b) => a - b)
     .map(x => `${x}`)
-    .map(task => `task${task.padStart(2, "0")}.txt`)
-    .map(task => `${dir}/${task}`)
+    .map(input => `input${input.padStart(2, "0")}.txt`)
+    .map(input => `${dir}/${input}`)
     .map(file => readFileSync(file).toString().trimEnd());
 }
 

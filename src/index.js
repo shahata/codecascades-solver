@@ -1,44 +1,34 @@
-import { solveAllTasks, solveAllCascades } from "./utils/solver.js";
-import { execSync } from "node:child_process";
 import * as process from "node:process";
+import { performance } from "node:perf_hooks";
+import readInputs from "./utils/read-inputs.js";
 
-if (!process.env.CASCADES_SESSION) {
-  try {
-    let session = execSync("cookies https://codecascades.com/ user_session");
-    process.env.CASCADES_SESSION = session.toString();
-  } catch {
-    //
-  }
-}
-
-if (process.env.CASCADES_SESSION) {
-  let cascade = process.argv[2];
-  let task = process.argv[3];
-  if (process.argv[2] && process.argv[2].includes("/")) {
-    let clean = process.argv[2].split("/").slice(-2);
-    let cascadeNum = parseInt(clean[0].match(/\d+/).pop());
-    let taskNum = parseInt(clean[1].match(/\d+/).pop());
-    if (Number.isNaN(cascadeNum) || Number.isNaN(taskNum)) {
-      console.error("Invalid arguments");
-      process.exit(0);
-    }
-    cascade = `${cascadeNum}`;
-    task = `${taskNum}`;
-  }
-  if (cascade) {
-    await solveAllTasks(cascade, task).catch(err => console.error(err.stack));
+async function timerify(log, fn) {
+  let start = performance.now();
+  let result = await fn();
+  let end = performance.now();
+  let duration = `(${Math.round(end - start)}ms)`;
+  if (result.next) {
+    let iter = result;
+    while (!result.done) result = await timerify(log, () => iter.next());
   } else {
-    await solveAllCascades().catch(err => console.error(err.stack));
+    log(`${result.value || result} ${duration}`);
   }
-} else {
-  console.error("***********************************************************");
-  console.error("***********************************************************");
-  console.error("**                                                       **");
-  console.error("** You must set an environment variable CASCADES_SESSION **");
-  console.error("** with the session cookie value from codecascades.com   **");
-  console.error("**                                                       **");
-  console.error("***********************************************************");
-  console.error("***********************************************************");
-  console.error("");
+  return result;
 }
-process.exit(0);
+
+async function solveAllTasks(cascade) {
+  let dirName = `cascade${cascade.padStart(2, "0")}`;
+  let moduleName = `./${dirName}/solution.js`;
+  let module = await import(moduleName);
+  let inputs = readInputs(new URL(moduleName, import.meta.url));
+  console.log(`Solution for ${dirName}!!!`);
+  console.log("----------------------------");
+  let n = 0;
+  let log = s => console.log(`Part ${++n}:`, s);
+  for (let i = 0; i < inputs.length; i++) {
+    await timerify(log, () => module.solve(...inputs.slice(0, i + 1)));
+  }
+  console.log("");
+}
+
+await solveAllTasks(process.argv[2] || "1");
