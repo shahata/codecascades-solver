@@ -17,7 +17,7 @@ function calcImage(seed, times = 1000) {
   sequence = sequence.slice(1);
   return {
     seed: sequence.at(-1),
-    image: sequence.map(x => (x % 16).toString(16)).join(""),
+    image: sequence.map(x => (x % 16).toString(16)),
   };
 }
 
@@ -27,7 +27,9 @@ export function solve2(input, slice = -4, times = 1000) {
     [parseInt(input.slice(5, 10), 16)],
     [parseInt(input.slice(10, 15), 16)],
   ];
-  return parts.map(seed => calcImage(seed, times).image.slice(slice)).join("");
+  return parts
+    .flatMap(seed => calcImage(seed, times).image.slice(slice))
+    .join("");
 }
 
 let angles = [
@@ -112,10 +114,10 @@ function buildTree(input) {
     [2, 9],
   ];
   let seed;
-  let image = "";
+  let image = [];
   if (input.length === 32) seed = parseInt(input.slice(5, 10), 16);
   else {
-    image = input;
+    image = input.split("");
     limits = limits.slice(0, 2);
   }
   let level = 0;
@@ -154,7 +156,6 @@ function calcLeaves(count, input, image) {
   let leafDigits = image ? 4 : 999;
   let energyIncrement = image ? 250 : 1000;
   if (!image) ({ image, seed } = calcImage(seed, count + leafDigits + 2));
-  if (typeof image === "string") image = image.split("");
   energyIncrement -= parseInt(image.slice(0, 2).join(""), 16);
   image = image.map(x => parseInt(x, 16));
   for (let i = 0; i < count; i++) {
@@ -226,11 +227,13 @@ function best(children, flowers) {
 
 export function growFlowers(input, image, flowers = 100) {
   let counts, levels, leaves;
-  if (Array.isArray(input)) levels = input;
-  else ({ counts, levels } = buildTree(input));
-  if (Array.isArray(image))
+  if (Array.isArray(input)) {
+    levels = input;
     leaves = image.map(x => ({ producing: x, required: 0 }));
-  else ({ leaves } = calcLeaves(counts.at(-1), input, image));
+  } else {
+    ({ counts, levels } = buildTree(input));
+    ({ leaves } = calcLeaves(counts.at(-1), input, image));
+  }
   levels.push(
     leaves.map(x => ({
       energy: x.producing,
