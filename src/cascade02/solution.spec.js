@@ -1,3 +1,4 @@
+import { describe, test, expect } from "vitest";
 import { solve } from "./solution.js";
 import readInputs from "../utils/read-inputs.js";
 
