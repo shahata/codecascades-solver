@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vitest";
 import { solve } from "./solution.js";
-import readInputs from "../utils/read-inputs.js";
+import readInputs from "../read-inputs.js";
 
 let inputs = readInputs(import.meta.url);
 

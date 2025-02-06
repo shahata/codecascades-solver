@@ -11,7 +11,5 @@ $ git clone git@github.com:shahata/codecascades-solver.git
 $ cd codecascades-solver
 
 $ npm install
-$ npm start [cascade]
+$ npm start
 ```
-
-The commands above will work for all cascades (1 and 2).

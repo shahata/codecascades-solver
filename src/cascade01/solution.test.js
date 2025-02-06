@@ -2,7 +2,7 @@ import { describe, test, expect } from "vitest";
 import { solve1, solve2, solve3, solve4, solve5 } from "./solution.js";
 import { solve6, solve7, solve8, solve9, solve10 } from "./solution.js";
 import { growFlowers } from "./solution.js";
-import readInputs from "../utils/read-inputs.js";
+import readInputs from "../read-inputs.js";
 
 let inputs = readInputs(import.meta.url);
 

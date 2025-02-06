@@ -1,6 +1,5 @@
-import * as process from "node:process";
 import { performance } from "node:perf_hooks";
-import readInputs from "./utils/read-inputs.js";
+import readInputs from "./read-inputs.js";
 
 async function timerify(log, fn) {
   let start = performance.now();
@@ -31,4 +30,5 @@ async function solveAllTasks(cascade) {
   console.log("");
 }
 
-await solveAllTasks(process.argv[2] || "1");
+await solveAllTasks("1");
+await solveAllTasks("2");
