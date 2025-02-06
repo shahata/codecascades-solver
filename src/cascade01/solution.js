@@ -154,12 +154,13 @@ function calcLeaves(count, input, image) {
   let leafDigits = image ? 4 : 999;
   let energyIncrement = image ? 250 : 1000;
   if (!image) ({ image, seed } = calcImage(seed, count + leafDigits + 2));
-  energyIncrement -= parseInt(image.slice(0, 2), 16);
+  if (typeof image === "string") image = image.split("");
+  energyIncrement -= parseInt(image.slice(0, 2).join(""), 16);
+  image = image.map(x => parseInt(x, 16));
   for (let i = 0; i < count; i++) {
     let required = image.slice(2 + i, 2 + i + leafDigits);
-    required = required.split("").map(x => parseInt(x, 16));
     required = required.reduce((a, b) => a + b);
-    let producing = parseInt(image[2 + i + leafDigits], 16) + 1;
+    let producing = image[2 + i + leafDigits] + 1;
     leaves.push({ required, producing });
   }
   return { leaves, energyIncrement };
@@ -224,11 +225,12 @@ function best(children, flowers) {
 }
 
 export function growFlowers(input, image, flowers = 100) {
-  let { counts, levels } = buildTree(input);
-  let { leaves } = calcLeaves(counts.at(-1), input, image);
+  let counts, levels, leaves;
   if (Array.isArray(input)) levels = input;
+  else ({ counts, levels } = buildTree(input));
   if (Array.isArray(image))
     leaves = image.map(x => ({ producing: x, required: 0 }));
+  else ({ leaves } = calcLeaves(counts.at(-1), input, image));
   levels.push(
     leaves.map(x => ({
       energy: x.producing,
