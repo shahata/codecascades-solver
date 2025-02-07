@@ -10,4 +10,5 @@ export default [
   ...typescript.configs.recommended,
   prettier,
   { languageOptions: { globals: globals.browser } },
+  { rules: { "prefer-template": "error" } },
 ];

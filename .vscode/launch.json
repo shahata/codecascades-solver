@@ -14,11 +14,8 @@
       "type": "node",
       "request": "launch",
       "cwd": "${workspaceRoot}",
-      "program": "${workspaceFolder}/node_modules/.bin/jest",
-      "args": ["--runInBand", "--findRelatedTests", "${relativeFile}"],
-      "env": {
-        "NODE_OPTIONS": "--experimental-vm-modules"
-      }
+      "program": "${workspaceRoot}/node_modules/vitest/vitest.mjs",
+      "args": ["related", "${relativeFile}"]
     }
   ]
 }
