@@ -9,8 +9,7 @@ function getAllInputs(dir, taskNum) {
     .filter(x => x <= taskNum)
     .sort((a, b) => a - b)
     .map(x => `${x}`)
-    .map(input => `task${input.padStart(2, "0")}.txt`)
-    .map(input => `${dir}/${input}`)
+    .map(input => `${dir}/task${input.padStart(2, "0")}.txt`)
     .map(file => readFileSync(file).toString().trimEnd());
 }
 

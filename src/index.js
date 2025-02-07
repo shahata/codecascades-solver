@@ -5,6 +5,8 @@ import { performance } from "node:perf_hooks";
 import { readdirSync } from "node:fs";
 import readInputs from "./read-inputs.js";
 
+let __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 async function timerify(fn) {
   let start = performance.now();
   let result = await fn();
@@ -12,8 +14,6 @@ async function timerify(fn) {
   let duration = `(${Math.round(end - start)}ms)`;
   return { result, duration };
 }
-
-let __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 async function solveTask(cascade, task) {
   let dirName = `cascade${cascade.padStart(2, "0")}`;
@@ -28,41 +28,33 @@ async function solveTask(cascade, task) {
   console.log("");
 }
 
+function getFiles(dir, regexp) {
+  return readdirSync(dir)
+    .filter(x => x.match(regexp))
+    .map(x => parseInt(x.match(/\d+/).shift()))
+    .sort((a, b) => a - b)
+    .map(x => `${x}`);
+}
+
 function getTasks(cascade) {
   try {
     let cascadeName = `cascade${cascade.padStart(2, "0")}`;
-    return readdirSync(path.resolve(__dirname, cascadeName))
-      .filter(x => x.match(/^task\d+\.js$/))
-      .map(x => parseInt(x.match(/\d+/).shift()))
-      .sort((a, b) => a - b)
-      .map(x => `${x}`);
+    return getFiles(path.resolve(__dirname, cascadeName), /^task\d+\.js$/);
   } catch {
     console.error(`must pass valid cascade in first argument`);
     process.exit(0);
   }
 }
 
-async function solveAllTasks(cascade, task) {
-  if (task) {
+async function solveAllTasks(cascade) {
+  let tasks = getTasks(cascade);
+  for (let task of tasks) {
     await solveTask(cascade, task);
-  } else {
-    let tasks = getTasks(cascade);
-    for (let task of tasks) {
-      await solveTask(cascade, task);
-    }
   }
 }
 
-function getCascades() {
-  return readdirSync(path.resolve(__dirname))
-    .filter(x => x.match(/^cascade\d+$/))
-    .map(x => parseInt(x.match(/\d+/).shift()))
-    .sort((a, b) => a - b)
-    .map(x => `${x}`);
-}
-
 async function solveAllCascades() {
-  let cascades = getCascades();
+  let cascades = getFiles(__dirname, /^cascade\d+$/);
   for (let cascade of cascades) {
     await solveAllTasks(cascade);
   }
@@ -81,8 +73,6 @@ if (process.argv[2] && process.argv[2].includes("/")) {
   cascade = `${cascadeNum}`;
   task = `${taskNum}`;
 }
-if (cascade) {
-  await solveAllTasks(cascade, task).catch(err => console.error(err.stack));
-} else {
-  await solveAllCascades().catch(err => console.error(err.stack));
-}
+if (task) await solveTask(cascade, task);
+else if (cascade) await solveAllTasks(cascade);
+else await solveAllCascades();
