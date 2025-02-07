@@ -122,21 +122,3 @@ export function play(input, walls, treasures, guards) {
     time: lastPoint,
   };
 }
-
-export function solve(input, walls, treasures, guards, games) {
-  if (games) {
-    games = games.split("\n");
-    let results = games
-      .map((game, i) => ({ i: i + 1, ...play(game, walls, treasures, guards) }))
-      .filter(x => !x.caught)
-      .sort((a, b) => b.score - a.score || a.time - b.time);
-    let { i, location, score, time } = results[0];
-    return [i, location, score, time].join(",");
-  } else {
-    let result = play(input, walls, treasures, guards);
-    if (guards) return [result.caught, result.location].join(",");
-    if (treasures) return [result.score, result.time].join(",");
-    if (walls) return [result.location, result.bumps].join(",");
-    return result.location;
-  }
-}
