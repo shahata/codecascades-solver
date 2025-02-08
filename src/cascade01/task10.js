@@ -11,11 +11,8 @@ function emptyReservoir(ant, backToRoot = false) {
   ant.commands.push("P", "V", "H", "D", ant.nectar);
   ant.time.push(15);
 
-  if (ant.maleTree) {
-    ant.time.push("QM", "WM", 2 + ant.nectar, "RM");
-  } else {
-    ant.time.push("QF", "WF", 2 + ant.nectar, "RF");
-  }
+  if (ant.maleTree) ant.time.push("QM", "WM", 2 + ant.nectar, "RM");
+  else ant.time.push("QF", "WF", 2 + ant.nectar, "RF");
   ant.nectar = 0;
 
   if (backToRoot) {

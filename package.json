@@ -26,5 +26,12 @@
   "prettier": {
     "quoteProps": "consistent",
     "arrowParens": "avoid"
+  },
+  "wallaby": {
+    "smartStart": [
+      {
+        "startMode": "open"
+      }
+    ]
   }
 }
