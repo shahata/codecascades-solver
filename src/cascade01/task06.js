@@ -7,7 +7,7 @@ export function calcLeaves(count, input, image) {
   let seed = parseInt(input.slice(10, 15), 16);
   let leafDigits = image ? 4 : 999;
   let energyIncrement = image ? 250 : 1000;
-  if (!image) ({ image, seed } = calcImage(seed, count + leafDigits + 2));
+  if (!image) ({ image } = calcImage(seed, count + leafDigits + 2));
   energyIncrement -= parseInt(image.slice(0, 2).join(""), 16);
   image = image.map(x => parseInt(x, 16));
   for (let i = 0; i < count; i++) {
